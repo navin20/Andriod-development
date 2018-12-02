@@ -1,54 +1,40 @@
-package navin.sample
+package com.shota.android.readjsonfromapi
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.widget.LinearLayout
-import com.google.firebase.FirebaseApp
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.github.kittinunf.fuel.httpGet
+import com.github.kittinunf.result.Result
+import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
-
-import navin.sample.R.id.text
-import com.google.firebase.database.DatabaseReference
-
-
-
+import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-
-        val database = FirebaseDatabase.getInstance()
-        val ref = database.getReference("tickers")
-
-        val rView =recyclerView
-
-        rView.layoutManager = LinearLayoutManager(this, LinearLayout.VERTICAL, false)
-
-        ref.addValueEventListener(object:ValueEventListener{//to add
-            override fun onDataChange(snapshot: DataSnapshot) {//try
-                val list:ArrayList<Bat> = arrayListOf()
-            for(ticker in snapshot.children){
-                    val last = ticker.child("last").value.toString()
-                    val cPair = ticker.child("currencyPair").value.toString()
-                    val bVolume = ticker.child("baseVolume").value.toString()
-                    val pChange = ticker.child("percentChange").value.toString()
-                    list.add(Bat(last,cPair,bVolume,pChange))
+        "https://dog.ceo/api/breeds/list/all".httpGet().responseString { request, response, result ->
+            //do something with response
+            when (result) {
+                is Result.Failure -> {
+                    val ex = result.getException()
                 }
+                is Result.Success -> {
+                    val data = result.get()
+                    val gson = Gson()
+                    val temp = gson.fromJson(data,temp::class.java);
+                    val dogIndex = DogIndex(data);
+                    val rView = recyclerView
+                    rView.layoutManager = LinearLayoutManager(this, LinearLayout.VERTICAL, false)
+                    val student = dogIndex.index
 
-                rView.adapter = BatAdapter(list);
+                    var adapter = DogAdapter(student);
+                    rView.adapter = adapter;
+                }
             }
-
-            override fun onCancelled(p0: DatabaseError) {//catch cancellation
-
-            }
-        })
+        }
     }
+    class temp(status:String, message:String){}
 }
